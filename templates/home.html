@@ -1,0 +1,201 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+	<title>Rubik's Scrambler</title>
+	<link href="https://fonts.googleapis.com/css?family=Roboto:100" rel="stylesheet">
+	<link href=".\static\css\home.css" rel="stylesheet">
+</head>
+
+<body style="font-family:Roboto;">
+
+	<div>
+		<p class="oz">github.com/ozgurozbek</p>
+	</div>
+
+	<div class="display">
+		<div>
+			<h1 style="color: rgb(155, 85, 0)">Notation</h1>
+			<h1>{{notation_web}}</h1>
+			<p style="color: rgb(175, 175, 175); text-align: center">Make sure the <strong>GREEN</strong> is
+				<strong>FACING</strong> you while the <strong>WHITE</strong> is on <strong>TOP</strong>.</p>
+		</div>
+	</div>
+
+	<div id="container" class="display oz" style="background-color: rgb(240, 240, 150) !important;">
+		<h1>
+			<div id="timeOut">
+				<span id="min"></span>
+				<span id="colon"></span>
+				<span id="sec">0</span>.<span id="decimal">00</span>
+			</div>
+		</h1>
+		<div id="timeList"></div>
+		<div id="stats">
+			<span id="solveNum">Solves: 0</span> ||
+			<span id="overallAv">Average: </span> ||
+			<span id="fastest">Best: </span><br />
+			<a id="clear" href="#" style="text-decoration: none; color: rgb(155, 85, 0)"><strong>Clear Times</strong></a>
+		</div>
+		<p style="color: rgb(175, 175, 175); text-align: center"><strong>USE ANY KEY</strong> to <strong>START</strong>
+			and <strong>STOP</strong> the <strong>TIMER</strong>. If it doesn't work, click on this field.</p>
+	</div>
+
+	<div hidden class="display" style="margin-bottom: 10px">
+		<div>
+			<h1 style="color: rgb(155, 85, 0)">Debug</h1>
+			<h5>{{debug_web}}</h5>
+		</div>
+	</div>
+
+	<div hidden class="display">
+			<div>
+				<h1 style="color: rgb(155, 85, 0)">Reminder</h1>
+				<p style="text-align: center">In a <strong>COMPETITIVE SETTING</strong>, you have <strong>15 SECONDS</strong> to get ready and start solving.</p>
+			</div>
+		</div>
+
+	<div class="oz" style="margin-top: 10px">
+		<button class="button buttonO oz" style="width: 60%" onclick="location.reload();">
+			<h3> NEW </h3>
+		</button>
+	</div>
+
+</body>
+
+<script>
+	var running = false;
+	var interval;
+	var decimal = 0;
+	var sec = 0;
+	var min = 0;
+	var cs = 0;
+	var decimalOut = document.getElementById("decimal");
+	var secOut = document.getElementById("sec");
+	var minOut = document.getElementById("min");
+	var colon = document.getElementById("colon");
+	var timesOut = document.getElementById("timeOut");
+	var timesList = document.getElementById("timeList");
+	var clearAll = document.getElementById("clear");
+	var timesDisplay = new Array();
+	var csTimes = new Array();
+	var avAll = 0;
+	var avAllOut = document.getElementById("overallAv");
+	var best = 999999999999999999;
+	var bestOut = document.getElementById("fastest");
+	var worst = 0;
+	var numSolves = 0;
+	var total = 0;
+	var numSolvesOut = document.getElementById("solveNum");
+
+	function timer() {
+		decimal++;
+		cs++; //counts time in centiseconds
+		decimalOut.innerHTML = decimal;
+		if (decimal >= 100) {
+			decimal = 0;
+			sec++;
+
+			if (sec > 59) {
+				sec = 0;
+				min++;
+				colon.innerHTML = ":";
+				minOut.innerHTML = min;
+			}
+			if (sec <= 9 && min > 0) {
+				sec = "0" + sec;
+			}
+			secOut.innerHTML = sec;
+		}
+
+		if (decimal <= 9) {
+			decimal = '0' + decimal;
+			decimalOut.innerHTML = decimal;
+		}
+
+	}
+	window.onkeyup = run;
+
+	function run() {
+		if (!running) {
+			decimal = 0;
+			sec = 0;
+			min = 0;
+			cs = 0;
+			secOut.innerHTML = "0";
+			minOut.innerHTML = "";
+			colon.innerHTML = "";
+			running = true;
+			interval = setInterval(timer, 10);
+		} else if (running) {
+			running = false;
+			clearInterval(interval);
+			timesDisplay.push(" " + timesOut.innerHTML);
+			csTimes.push(cs);
+			timesList.innerHTML = timesDisplay;
+			calculateStats();
+		}
+	}
+	clearAll.onclick = clearTimes;
+
+	function clearTimes() {
+		numSolves = 0;
+		numSolvesOut.innerHTML = "Solves: " + numSolves;
+		best = 99999999999;
+		bestOut.innerHTML = "Best: ";
+		worst = 0;
+		avAll = 0;
+		total = 0;
+		avAllOut.innerHTML = "Average: ";
+		timesDisplay = [];
+		csTimes = [];
+		timesList.innerHTML = timesDisplay;
+	}
+
+	function calculateStats() {
+		numSolves++;
+		total = 0;
+		numSolvesOut.innerHTML = "Solves: " + numSolves;
+		for (var x = 0; x < csTimes.length; x++) {
+			if (csTimes[x] < best) {
+				best = csTimes[x];
+			}
+			if (csTimes[x] > worst) {
+				worst = csTimes[x];
+			}
+			total += csTimes[x];
+		}
+		avAll = total / numSolves;
+		avAllOut.innerHTML = "Average: " + formatTime(avAll);
+		bestOut.innerHTML = "Best: " + formatTime(best);
+	}
+
+	function formatTime(t) {
+		//m = minute, s = second, c = centisecond
+		var m = 0,
+			s = 0,
+			c = 0,
+			out = "";
+		m = Math.floor(t / 6000);
+		t = t % 6000;
+		s = Math.floor(t / 100);
+		t = t % 100;
+		c = Math.floor(t);
+		if (m < 1) {
+			m = "";
+		} else {
+			m = m + ":";
+			if (s < 10) {
+				s = "0" + s;
+			}
+		}
+		if (c < 10) {
+			c = "0" + c;
+		}
+
+		out = "" + m + s + "." + c;
+		return out;
+	}
+</script>
+
+</html>
